@@ -21,4 +21,9 @@ pipeline {
             }
         }
     }
+    post {
+        success {
+            archiveArtifacts 'target/helloworld-1.0.jar'
+        }
+    }
 }
