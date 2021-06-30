@@ -350,4 +350,6 @@ MigrationBackup/
 .ionide/
 
 .settings
+.classpath
+.project
 target
