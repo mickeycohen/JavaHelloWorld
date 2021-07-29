@@ -1,0 +1,83 @@
+name: 1.1$(Rev:.r)
+trigger:
+ branches:
+   include:
+     - '*'
+variables:
+  system.debug: 'true'
+resources:
+ repositories:
+   - repository: templates
+     type: github
+     name: mickeycohen/DevOps
+     endpoint: github.com_mickeycohen
+   - repository: testtemplates
+     type: github
+     name: mickeycohen/DevOpsTest
+     endpoint: github.com_mickeycohen     
+pool:
+  vmImage: ubuntu-18.04
+steps:
+- template: AzureDevOps/PipelineTemplates/set-version-by-branch.yml@templates
+- task: PowerShell@2
+  displayName: "List environment variables"
+  inputs:
+    targetType: 'inline'
+    script: 'Get-ChildItem -Path Env:'
+  condition: and(succeeded(), eq(variables['system.debug'], true))
+- task: Maven@3
+  displayName: 'Maven Set Version'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    options: '-DnewVersion=$(Build.BuildNumber)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    goals: 'versions:set'
+- task: Maven@3
+  displayName: 'Maven Package'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    goals: 'package'
+- task: CopyFiles@2
+  displayName: 'Copy jar File to Artifacts Directory'
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '**/*.jar'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish JAR'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'JavaHelloWorld'
+    publishLocation: 'Container'
+- task: CopyFiles@2
+  displayName: 'Copy Dockerfile'
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '**/Dockerfile'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    flattenFolders: true
+- task: replacetokens@3
+  displayName: 'Replace tokens in Dockerfile'
+  inputs:
+    targetFiles: '$(Build.ArtifactStagingDirectory)/Dockerfile'
+    encoding: 'auto'
+    writeBOM: true
+    actionOnMissing: 'warn'
+    keepToken: false
+    tokenPrefix: '#{'
+    tokenSuffix: '}#'
+    useLegacyPattern: false
+    enableTransforms: false
+    enableTelemetry: false
+- template: AzureDevOps/PipelineTemplates/built-tag-push-docker.yml@templates
+  parameters:
+    dockerfilePath: '$(Build.ArtifactStagingDirectory)/Dockerfile'
+    dockerRepository: 'cohenmickey'
+    dockerImage: 'javahelloworld'
