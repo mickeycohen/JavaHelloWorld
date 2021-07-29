@@ -17,7 +17,7 @@ pipeline {
         }
         stage('Run') {
             steps {
-                bat 'java -cp target/helloworld-1.0.jar com.mickeyc.helloworld.HelloWorld'
+                bat 'java -jar helloworld-1.0.jar'
             }
         }
     }
