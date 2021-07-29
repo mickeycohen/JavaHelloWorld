@@ -10,11 +10,11 @@ resources:
    - repository: templates
      type: github
      name: mickeycohen/DevOps
-     endpoint: github.com_mickeycohen
+     endpoint: mickeycohen
    - repository: testtemplates
      type: github
      name: mickeycohen/DevOpsTest
-     endpoint: github.com_mickeycohen     
+     endpoint: mickeycohen     
 pool:
   vmImage: ubuntu-18.04
 steps:
