@@ -21,7 +21,7 @@ public class HelloWorld
     }
     catch (UnknownHostException ex)
     {
-      System.out.println("Can't get on hostname!");
+      System.out.println("Can't get hostname!");
     }    
     System.out.println("Goodbye");
   }
